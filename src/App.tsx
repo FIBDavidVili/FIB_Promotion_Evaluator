@@ -107,7 +107,7 @@ const BADGE_LAYOUT: {
         [650, 838],
         [723, 796],
       ],
-      fontSize: 52,
+      fontSize: 65,
       weight: "900",
       maxLen: 22,
       letterSpacing: 0.45,
