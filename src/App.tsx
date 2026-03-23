@@ -70,7 +70,7 @@ const BADGE_LAYOUT: {
         [648, 432],
         [735, 500],
       ],
-      fontSize: 59,
+      fontSize: 65,
       weight: "900",
       maxLen: 33,
       letterSpacing: 0.55,
