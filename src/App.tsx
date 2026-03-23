@@ -27,6 +27,8 @@ type TemplateKey =
   | "trialSupervisor"
   | "patrolAgent";
 
+type BuilderMode = "semiAutomatic" | "manual";
+
 type LookupResult = {
   callsign: string;
   badgeNumber: string;
@@ -792,6 +794,7 @@ function findRosterEntryByDiscordId(
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [mode, setMode] = useState<BuilderMode>("semiAutomatic");
   const [templateKey, setTemplateKey] = useState<TemplateKey>("command");
   const [form, setForm] = useState(buildInitialState("command"));
   const [templateImages, setTemplateImages] = useState(makeEmptyImages());
@@ -803,6 +806,7 @@ export default function App() {
 
   const previewList = useMemo(() => Object.values(templates), []);
   const currentImage = templateImages[templateKey];
+  const isSemiAutomatic = mode === "semiAutomatic";
 
   useEffect(() => {
     const entries = Object.entries(templates) as [
@@ -852,7 +856,11 @@ export default function App() {
   }
 
   function getShadowColor() {
-    if (form.finish.includes("Nickel") || form.finish.includes("Silver") || form.finish.includes("Sil-Ray")) {
+    if (
+      form.finish.includes("Nickel") ||
+      form.finish.includes("Silver") ||
+      form.finish.includes("Sil-Ray")
+    ) {
       return "rgba(255,255,255,0.92)";
     }
     return "rgba(255,245,210,0.95)";
@@ -968,120 +976,175 @@ export default function App() {
     link.click();
   }
 
+  const subtitle =
+    mode === "manual"
+      ? "Choose a badge template and generate badges directly on the website."
+      : "Enter your Discord ID to fetch your badge details automatically.";
+
   return (
     <div className="min-h-screen bg-zinc-100 p-4 md:p-6">
-      <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
-        <Card className="rounded-3xl border-0 shadow-xl">
-          <CardContent className="space-y-6 p-5">
+      <div
+        className={`mx-auto grid max-w-7xl gap-6 ${
+          isSemiAutomatic
+            ? "xl:grid-cols-[340px_minmax(0,1fr)]"
+            : "xl:grid-cols-[380px_minmax(0,1fr)]"
+        }`}
+      >
+        <Card className={`rounded-3xl border-0 shadow-xl ${isSemiAutomatic ? "self-start" : ""}`}>
+          <CardContent className={`space-y-6 ${isSemiAutomatic ? "p-4" : "p-5"}`}>
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-zinc-900 p-2 text-white">
                 <BadgeInfo className="h-5 w-5" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">Badge Builder</h1>
-                <p className="text-sm text-zinc-500">
-                  Enter your Discord ID to fetch your badge details automatically.
-                </p>
+                <p className="text-sm text-zinc-500">{subtitle}</p>
               </div>
             </div>
 
             <div className="grid gap-2">
-              <Label>Discord ID</Label>
-              <Input
-                value={discordId}
-                inputMode="numeric"
-                placeholder="Enter your Discord ID to fetch your badge details"
-                onChange={(e) => setDiscordId(e.target.value.replace(/[^\d]/g, ""))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    fetchBadgeDetails();
-                  }
-                }}
-                className="rounded-xl"
-              />
-              <div className="flex gap-2">
-                <Button
+              <Label>Build Mode</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
                   type="button"
-                  onClick={fetchBadgeDetails}
-                  disabled={lookupLoading}
-                  className="w-full rounded-2xl"
+                  onClick={() => setMode("semiAutomatic")}
+                  className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                    mode === "semiAutomatic"
+                      ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                      : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
+                  }`}
                 >
-                  {lookupLoading ? "Fetching..." : "Fetch Badge Details"}
-                </Button>
+                  Auto-Fill from Discord ID
+                </button>
 
-                <Button
+                <button
                   type="button"
-                  onClick={clearBadgeDetails}
-                  className="w-full rounded-2xl bg-zinc-700 hover:bg-zinc-600"
+                  onClick={() => setMode("manual")}
+                  className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                    mode === "manual"
+                      ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                      : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
+                  }`}
                 >
-                  Clear
-                </Button>
+                  Manual Badge Setup
+                </button>
               </div>
-
-              {lookupError ? (
-                <p className="text-sm font-medium text-red-600">{lookupError}</p>
-              ) : null}
-
-              {lookupSuccess ? (
-                <p className="text-sm font-medium text-emerald-600">{lookupSuccess}</p>
-              ) : null}
             </div>
 
             <Separator />
 
-            <div className="grid gap-2">
-              <Label>Badge Template</Label>
-              <Select
-                value={templateKey}
-                onValueChange={(value) =>
-                  applyTemplateDefaults(value as TemplateKey, true)
-                }
-              >
-                {previewList.map((item) => (
-                  <SelectItem key={item.id} value={item.id}>
-                    {item.name}
-                  </SelectItem>
-                ))}
-              </Select>
-              <p className="text-xs text-zinc-500">
-                The template is selected automatically from the rank, but you can still change it manually.
-              </p>
-            </div>
+            {isSemiAutomatic ? (
+              <div className="grid gap-2">
+                <Label>Discord ID</Label>
+                <Input
+                  value={discordId}
+                  inputMode="numeric"
+                  placeholder="Enter your Discord ID to load your badge details"
+                  onChange={(e) => setDiscordId(e.target.value.replace(/[^\d]/g, ""))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      fetchBadgeDetails();
+                    }
+                  }}
+                  className="rounded-xl"
+                />
 
-            <Separator />
+                <div className="grid gap-2">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      onClick={fetchBadgeDetails}
+                      disabled={lookupLoading}
+                      className="w-full rounded-2xl"
+                    >
+                      {lookupLoading ? "Loading Badge Details..." : "Load Badge Details"}
+                    </Button>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-zinc-700">
-                <Settings2 className="h-4 w-4" />
-                Engraving Lines
-              </div>
+                    <Button
+                      type="button"
+                      onClick={clearBadgeDetails}
+                      className="w-full rounded-2xl bg-zinc-700 hover:bg-zinc-600"
+                    >
+                      Clear Form
+                    </Button>
+                  </div>
 
-              {Object.entries(BADGE_LAYOUT.lines).map(([key, cfg]) => (
-                <div key={key} className="grid gap-2">
-                  <Label>{cfg.label}</Label>
-                  <Input
-                    className={`rounded-xl ${cfg.fixed ? "bg-zinc-50" : ""}`}
-                    value={form[key as keyof typeof form]}
-                    maxLength={cfg.maxLen}
-                    readOnly={cfg.fixed}
-                    onChange={(e) => {
-                      if (cfg.fixed) return;
-                      setField(key, e.target.value.toUpperCase());
-                    }}
-                    placeholder={cfg.label}
-                  />
+                  <Button
+                    type="button"
+                    onClick={downloadBadge}
+                    className="w-full rounded-2xl"
+                    disabled={!currentImage}
+                  >
+                    <Download className="mr-2 inline h-4 w-4" />
+                    Download Badge
+                  </Button>
                 </div>
-              ))}
-            </div>
 
-            <Button
-              onClick={downloadBadge}
-              className="w-full rounded-2xl"
-              disabled={!currentImage}
-            >
-              <Download className="mr-2 inline h-4 w-4" />
-              Download Badge
-            </Button>
+                {lookupError ? (
+                  <p className="text-sm font-medium text-red-600">{lookupError}</p>
+                ) : null}
+
+                {lookupSuccess ? (
+                  <p className="text-sm font-medium text-emerald-600">{lookupSuccess}</p>
+                ) : null}
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-2">
+                  <Label>Badge Template</Label>
+                  <Select
+                    value={templateKey}
+                    onValueChange={(value) =>
+                      applyTemplateDefaults(value as TemplateKey, true)
+                    }
+                  >
+                    {previewList.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                  <p className="text-xs text-zinc-500">
+                    Select a badge template and enter the engraving details manually.
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-zinc-700">
+                    <Settings2 className="h-4 w-4" />
+                    Engraving Lines
+                  </div>
+
+                  {Object.entries(BADGE_LAYOUT.lines).map(([key, cfg]) => (
+                    <div key={key} className="grid gap-2">
+                      <Label>{cfg.label}</Label>
+                      <Input
+                        className={`rounded-xl ${cfg.fixed ? "bg-zinc-50" : ""}`}
+                        value={form[key as keyof typeof form]}
+                        maxLength={cfg.maxLen}
+                        readOnly={cfg.fixed}
+                        onChange={(e) => {
+                          if (cfg.fixed) return;
+                          setField(key, e.target.value.toUpperCase());
+                        }}
+                        placeholder={cfg.label}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={downloadBadge}
+                  className="w-full rounded-2xl"
+                  disabled={!currentImage}
+                >
+                  <Download className="mr-2 inline h-4 w-4" />
+                  Download Badge
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -1111,52 +1174,54 @@ export default function App() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {previewList.map((item) => {
-              const hasImage = Boolean(
-                templateImages[item.id as keyof typeof templateImages]
-              );
+          {!isSemiAutomatic ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {previewList.map((item) => {
+                const hasImage = Boolean(
+                  templateImages[item.id as keyof typeof templateImages]
+                );
 
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => applyTemplateDefaults(item.id as TemplateKey, true)}
-                  className={`rounded-3xl border bg-white p-4 text-left shadow-sm transition hover:shadow-lg ${
-                    templateKey === item.id
-                      ? "border-zinc-900 ring-2 ring-zinc-900/10"
-                      : "border-zinc-200"
-                  }`}
-                >
-                  <div className="mb-3 flex items-center justify-between text-sm font-semibold text-zinc-900">
-                    <span>{item.name}</span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] ${
-                        hasImage
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-zinc-100 text-zinc-500"
-                      }`}
-                    >
-                      {hasImage ? "Ready" : "Missing"}
-                    </span>
-                  </div>
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => applyTemplateDefaults(item.id as TemplateKey, true)}
+                    className={`rounded-3xl border bg-white p-4 text-left shadow-sm transition hover:shadow-lg ${
+                      templateKey === item.id
+                        ? "border-zinc-900 ring-2 ring-zinc-900/10"
+                        : "border-zinc-200"
+                    }`}
+                  >
+                    <div className="mb-3 flex items-center justify-between text-sm font-semibold text-zinc-900">
+                      <span>{item.name}</span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] ${
+                          hasImage
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-zinc-100 text-zinc-500"
+                        }`}
+                      >
+                        {hasImage ? "Ready" : "Missing"}
+                      </span>
+                    </div>
 
-                  <div className="grid h-44 place-items-center rounded-2xl bg-zinc-100 p-3">
-                    {hasImage ? (
-                      <img
-                        src={templateImages[item.id as keyof typeof templateImages]?.src}
-                        alt={item.name}
-                        className="h-40 w-auto object-contain"
-                      />
-                    ) : (
-                      <div className="text-center text-xs text-zinc-400">
-                        No template image found
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    <div className="grid h-44 place-items-center rounded-2xl bg-zinc-100 p-3">
+                      {hasImage ? (
+                        <img
+                          src={templateImages[item.id as keyof typeof templateImages]?.src}
+                          alt={item.name}
+                          className="h-40 w-auto object-contain"
+                        />
+                      ) : (
+                        <div className="text-center text-xs text-zinc-400">
+                          No template image found
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
       </div>
 
