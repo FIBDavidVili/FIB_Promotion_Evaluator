@@ -9,8 +9,8 @@ import {
   splitCallsign,
   getTemplateFromRank,
   clampText,
-} from "./lib/badge";
-import type { TemplateKey } from "./lib/badge";
+} from ".src/lib/badge.ts";
+import type { TemplateKey } from ".src/lib/badge.ts";
 
 type BuilderMode = "semiAutomatic" | "manual";
 
