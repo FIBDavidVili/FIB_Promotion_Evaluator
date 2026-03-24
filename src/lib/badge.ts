@@ -1,6 +1,3 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBadgeDataFromDiscordId } from "../src/lib/badge";
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const discordId = String(req.query.discordId || "").replace(/\D/g, "");
