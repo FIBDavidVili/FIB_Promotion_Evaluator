@@ -1,5 +1,4 @@
 export default async function handler(req: any, res: any) {
-  // 🔓 Allow BotGhost to call this
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -21,10 +20,45 @@ export default async function handler(req: any, res: any) {
   const FTD_GID = "476091669";
   const HOURS_MANAGER_GID = "264837711";
 
-  const REQUIREMENTS: any = {
-    Agent: { nextRank: "Senior Agent", minHours: 5, minTir: 7 },
-    "Senior Agent": { nextRank: "Special Agent", minHours: 5, minTir: 7 },
-    "Special Agent": { nextRank: "Senior Special Agent", minHours: 5, minTir: 7 },
+  const REQUIREMENTS: Record<
+    string,
+    {
+      nextRank: string | null;
+      minHours: number;
+      minTir: number;
+      mustBeInFtd: boolean;
+      minFtdJobs: number;
+      minMonthlyHours?: number;
+    }
+  > = {
+    "Probationary Agent": {
+      nextRank: "Agent",
+      minHours: 0,
+      minTir: 0,
+      mustBeInFtd: false,
+      minFtdJobs: 0,
+    },
+    Agent: {
+      nextRank: "Senior Agent",
+      minHours: 5,
+      minTir: 7,
+      mustBeInFtd: false,
+      minFtdJobs: 0,
+    },
+    "Senior Agent": {
+      nextRank: "Special Agent",
+      minHours: 5,
+      minTir: 7,
+      mustBeInFtd: false,
+      minFtdJobs: 0,
+    },
+    "Special Agent": {
+      nextRank: "Senior Special Agent",
+      minHours: 5,
+      minTir: 7,
+      mustBeInFtd: false,
+      minFtdJobs: 0,
+    },
     "Senior Special Agent": {
       nextRank: "Supervisory Special Agent",
       minHours: 5,
@@ -32,7 +66,6 @@ export default async function handler(req: any, res: any) {
       mustBeInFtd: true,
       minFtdJobs: 3,
     },
-
     "Supervisory Special Agent": {
       nextRank: "Assistant Special Agent in Charge",
       minHours: 5,
@@ -54,7 +87,6 @@ export default async function handler(req: any, res: any) {
       mustBeInFtd: true,
       minFtdJobs: 6,
     },
-
     "Senior Special Agent In Charge": {
       nextRank: "Agent Commander",
       minHours: 5,
@@ -98,14 +130,46 @@ export default async function handler(req: any, res: any) {
   };
 
   function cleanId(id: any) {
-    return String(id || "").replace(/\D/g, "");
+    return String(id || "").replace(/\D/g, "").trim();
+  }
+
+  function parseCSVLine(line: string) {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const next = line[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && next === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+
+      if (char === "," && !inQuotes) {
+        result.push(current);
+        current = "";
+        continue;
+      }
+
+      current += char;
+    }
+
+    result.push(current);
+    return result.map((cell) => cell.trim());
   }
 
   function parseCSV(text: string) {
     return text
       .split(/\r?\n/)
       .filter((line) => line.trim().length > 0)
-      .map((line) => line.split(","));
+      .map(parseCSVLine);
   }
 
   async function fetchSheet(sheetId: string, gid: string) {
@@ -113,7 +177,7 @@ export default async function handler(req: any, res: any) {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error("Failed to fetch sheet");
+      throw new Error(`Failed to fetch sheet ${gid}`);
     }
 
     const text = await response.text();
@@ -136,14 +200,18 @@ export default async function handler(req: any, res: any) {
       fetchSheet(MAIN_SHEET_ID, HOURS_MANAGER_GID),
     ]);
 
-    let employee: any = null;
+    let employee: {
+      name: string;
+      rank: string;
+      hours: number;
+      tir: number;
+    } | null = null;
 
-    // 🔍 FIND MAIN DATA
     for (const row of main) {
       if (cleanId(row[10]) === discordId) {
         employee = {
-          name: row[3],
-          rank: row[4],
+          name: row[3] || "",
+          rank: row[4] || "",
           hours: Number(row[9] || 0),
           tir: Number(row[8] || 0),
         };
@@ -158,7 +226,6 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // 🔍 FTD
     let ftdActivities = 0;
     let inFtd = false;
 
@@ -170,7 +237,6 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    // 🔍 MONTHLY HOURS
     let monthlyHours = 0;
 
     for (const row of hours) {
@@ -191,29 +257,30 @@ export default async function handler(req: any, res: any) {
 
     const missing: string[] = [];
 
-    if (employee.hours < (reqData.minHours || 0)) {
-      missing.push("Hours");
+    if (employee.hours < reqData.minHours) {
+      missing.push(`${reqData.minHours - employee.hours} more hour(s)`);
     }
 
-    if (employee.tir < (reqData.minTir || 0)) {
-      missing.push("TIR");
+    if (employee.tir < reqData.minTir) {
+      missing.push(`${reqData.minTir - employee.tir} more TIR day(s)`);
     }
 
     if (reqData.mustBeInFtd && !inFtd) {
-      missing.push("FTD");
+      missing.push("Must be in FTD");
     }
 
-    if ((reqData.minFtdJobs || 0) > ftdActivities) {
-      missing.push("FTD Activities");
+    if (ftdActivities < reqData.minFtdJobs) {
+      missing.push(`${reqData.minFtdJobs - ftdActivities} more FTD activities`);
     }
 
-    if ((reqData.minMonthlyHours || 0) > monthlyHours) {
-      missing.push("Monthly Hours");
+    if ((reqData.minMonthlyHours || 0) > 0 && monthlyHours < (reqData.minMonthlyHours || 0)) {
+      missing.push(`${(reqData.minMonthlyHours || 0) - monthlyHours} more monthly hour(s)`);
     }
 
-    const status = missing.length === 0 ? "✅ Eligible" : "❌ Not Eligible";
+    const eligible = missing.length === 0;
+    const status = eligible ? "✅ Eligible" : "❌ Not Eligible";
     const nextRank = reqData.nextRank || "High Command";
-    const missingText = missing.length === 0 ? "None" : missing.join(", ");
+    const missingText = eligible ? "None" : missing.join(", ");
 
     const message =
 `🕵️ **FIB Promotion Evaluation**
@@ -228,8 +295,7 @@ export default async function handler(req: any, res: any) {
 **TIR:** ${employee.tir}
 **FTD:** ${inFtd ? "Yes" : "No"}
 **FTD Activities:** ${ftdActivities}
-**Monthly Hours:** ${monthlyHours}
-
+${(reqData.minMonthlyHours || 0) > 0 ? `**Monthly Hours:** ${monthlyHours}\n` : ""}
 **Missing:** ${missingText}`;
 
     return res.status(200).json({
@@ -238,7 +304,7 @@ export default async function handler(req: any, res: any) {
       name: employee.name,
       rank: employee.rank,
       nextRank,
-      eligible: missing.length === 0,
+      eligible,
       missing: missingText,
       hours: employee.hours,
       tir: employee.tir,
@@ -246,10 +312,10 @@ export default async function handler(req: any, res: any) {
       ftdActivities,
       monthlyHours,
     });
-  } catch (e) {
+  } catch (e: any) {
     return res.status(500).json({
       ok: false,
-      message: "❌ Failed to fetch data",
+      message: `❌ ${e?.message || "Failed to fetch data"}`,
     });
   }
 }
