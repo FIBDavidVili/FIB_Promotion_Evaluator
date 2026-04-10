@@ -15,7 +15,7 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({
       ok: false,
       error: "Method not allowed",
-      message: "❌ Method not allowed",
+      output: "❌ Method not allowed",
     });
   }
 
@@ -188,7 +188,9 @@ export default async function handler(req: any, res: any) {
     for (const url of urls) {
       try {
         const response = await fetch(url, {
-          headers: { Accept: "text/csv,text/plain,*/*" },
+          headers: {
+            Accept: "text/csv,text/plain,*/*",
+          },
         });
 
         if (!response.ok) {
@@ -196,6 +198,7 @@ export default async function handler(req: any, res: any) {
         }
 
         const text = await response.text();
+
         if (!text.trim()) {
           throw new Error(`Empty sheet ${gid}`);
         }
@@ -215,7 +218,7 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({
       ok: false,
       error: "No Discord ID provided",
-      message: "❌ No Discord ID provided",
+      output: "❌ No Discord ID provided",
     });
   }
 
@@ -233,11 +236,17 @@ export default async function handler(req: any, res: any) {
       tir: number;
     } | null = null;
 
+    // Main roster
+    // D = name (3)
+    // E = rank (4)
+    // I = tir (8)
+    // J = hours (9)
+    // K = discord id (10)
     for (const row of mainRows) {
       if (cleanId(row[10]) === discordId) {
         employee = {
           name: row[3] || "",
-          rank: (row[4] || "").trim(),
+          rank: String(row[4] || "").trim(),
           hours: Number(row[9] || 0),
           tir: Number(row[8] || 0),
         };
@@ -249,10 +258,13 @@ export default async function handler(req: any, res: any) {
       return res.status(404).json({
         ok: false,
         error: "User not found",
-        message: "❌ User not found",
+        output: "❌ User not found",
       });
     }
 
+    // FTD roster
+    // J = activities (9)
+    // K = discord id (10)
     let inFtd = false;
     let ftdActivities = 0;
 
@@ -264,6 +276,9 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+    // Hours Manager
+    // F = discord id (5)
+    // G = monthly hours (6)
     let monthlyHours = 0;
 
     for (const row of hoursRows) {
@@ -279,7 +294,7 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({
         ok: false,
         error: `Unsupported rank: ${employee.rank}`,
-        message: `❌ Unsupported rank: ${employee.rank}`,
+        output: `❌ Unsupported rank: ${employee.rank}`,
       });
     }
 
@@ -305,33 +320,40 @@ export default async function handler(req: any, res: any) {
       missing.push(`${(reqData.minMonthlyHours || 0) - monthlyHours} more monthly hour(s)`);
     }
 
-    const eligible = missing.length === 0;
-    const status = eligible ? "✅ Eligible" : "❌ Not Eligible";
+    const eligibleBool = missing.length === 0;
+    const eligibleText = eligibleBool ? "✅ Eligible" : "❌ Not Eligible";
     const nextRank = reqData.nextRank || "High Command";
-    const missingText = eligible ? "None" : missing.join(", ");
+    const missingText = eligibleBool ? "None" : missing.join(", ");
 
-    const message = [
-      `**Name:** ${employee.name}`,
-      `**Rank:** ${employee.rank}`,
-      `**Next Rank:** ${nextRank}`,
+    const outputLines = [
+      `Name: ${employee.name}`,
+      `Rank: ${employee.rank}`,
+      `Next Rank: ${nextRank}`,
       ``,
-      `**Status:** ${status}`,
+      `Status: ${eligibleText}`,
       ``,
-      `**Hours:** ${employee.hours}`,
-      `**TIR:** ${employee.tir}`,
-      `**FTD:** ${inFtd ? "Yes" : "No"}`,
-      `**FTD Activities:** ${ftdActivities}`,
-      ...(reqData.minMonthlyHours ? [`**Monthly Hours:** ${monthlyHours}`] : []),
-      `**Missing:** ${missingText}`,
-    ].join("\n");
+      `Hours: ${employee.hours}`,
+      `TIR: ${employee.tir}`,
+      `FTD: ${inFtd ? "Yes" : "No"}`,
+      `FTD Activities: ${ftdActivities}`,
+    ];
+
+    if (reqData.minMonthlyHours) {
+      outputLines.push(`Monthly Hours: ${monthlyHours}`);
+    }
+
+    outputLines.push(`Missing: ${missingText}`);
+
+    const output = outputLines.join("\n");
 
     return res.status(200).json({
       ok: true,
-      message,
+      output,
       name: employee.name,
       rank: employee.rank,
       nextRank,
-      eligible: status,
+      eligible: eligibleText,
+      eligibleBool,
       hours: employee.hours,
       tir: employee.tir,
       ftd: inFtd ? "Yes" : "No",
@@ -343,7 +365,7 @@ export default async function handler(req: any, res: any) {
     return res.status(500).json({
       ok: false,
       error: error?.message || "Failed to fetch data",
-      message: `❌ ${error?.message || "Failed to fetch data"}`,
+      output: `❌ ${error?.message || "Failed to fetch data"}`,
     });
   }
 }
