@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { ShieldCheck, Search, User, CheckCircle2, XCircle, ArrowRight, ClipboardList } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import {
+  ShieldCheck,
+  Search,
+  User,
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+  ClipboardList,
+} from "lucide-react";
 
 const MAIN_SHEET_ID = "1R7SpirGzmgUzZK6_MwcH0LGAubwShjsaxxJG2fFDi5g";
 const MAIN_GID = "1598342668";
@@ -107,8 +108,9 @@ const REQUIREMENTS = {
   },
 };
 
-const RANKS = Object.keys(REQUIREMENTS);
-const DISPLAY_RANKS = RANKS.filter((rank) => rank !== "Probationary Agent");
+const DISPLAY_RANKS = Object.keys(REQUIREMENTS).filter(
+  (rank) => rank !== "Probationary Agent"
+);
 
 const EMPTY_AGENT = {
   name: "",
@@ -119,11 +121,199 @@ const EMPTY_AGENT = {
   ftdJobs: "",
 };
 
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "linear-gradient(180deg, #0a0f1c 0%, #111827 100%)",
+    color: "#f3f4f6",
+    padding: "24px",
+    fontFamily: "Inter, Arial, sans-serif",
+  },
+  shell: {
+    maxWidth: "1280px",
+    margin: "0 auto",
+    display: "grid",
+    gap: "24px",
+  },
+  topGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: "24px",
+  },
+  bottomGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: "24px",
+  },
+  card: {
+    background: "rgba(17, 24, 39, 0.92)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "24px",
+    padding: "24px",
+    boxShadow: "0 16px 40px rgba(0,0,0,0.28)",
+  },
+  headerRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "18px",
+  },
+  iconBox: {
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "16px",
+    padding: "10px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(255,255,255,0.03)",
+  },
+  title: {
+    margin: 0,
+    fontSize: "28px",
+    fontWeight: 700,
+  },
+  subtitle: {
+    margin: "4px 0 0",
+    color: "#9ca3af",
+    fontSize: "14px",
+  },
+  statsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+    gap: "12px",
+    marginBottom: "20px",
+  },
+  stat: {
+    borderRadius: "18px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    padding: "14px",
+    background: "rgba(255,255,255,0.03)",
+  },
+  statLabel: {
+    fontSize: "11px",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    color: "#9ca3af",
+  },
+  statValue: {
+    marginTop: "6px",
+    fontSize: "18px",
+    fontWeight: 700,
+  },
+  label: {
+    display: "block",
+    marginBottom: "8px",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  inputRow: {
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+  },
+  input: {
+    flex: 1,
+    minWidth: "220px",
+    background: "#0f172a",
+    color: "#f8fafc",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "14px",
+    padding: "12px 14px",
+    fontSize: "14px",
+    outline: "none",
+  },
+  button: {
+    background: "#f3f4f6",
+    color: "#111827",
+    border: "none",
+    borderRadius: "14px",
+    padding: "12px 16px",
+    fontWeight: 700,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer",
+  },
+  muted: {
+    marginTop: "10px",
+    color: "#9ca3af",
+    fontSize: "14px",
+  },
+  error: {
+    marginTop: "10px",
+    color: "#fca5a5",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  employeeHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "12px",
+    flexWrap: "wrap",
+  },
+  badge: {
+    borderRadius: "999px",
+    padding: "8px 12px",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  divider: {
+    border: 0,
+    borderTop: "1px solid rgba(255,255,255,0.08)",
+    margin: "18px 0",
+  },
+  resultBox: {
+    borderRadius: "20px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    padding: "18px",
+    marginTop: "16px",
+    background: "rgba(255,255,255,0.02)",
+  },
+  resultHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+  },
+  pillWrap: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    marginTop: "12px",
+  },
+  pill: {
+    borderRadius: "999px",
+    padding: "8px 12px",
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "transparent",
+    fontSize: "14px",
+  },
+  requirementRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+    gap: "12px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "18px",
+    padding: "14px",
+    background: "rgba(255,255,255,0.02)",
+    marginBottom: "10px",
+  },
+  smallLabel: {
+    fontSize: "11px",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    color: "#9ca3af",
+  },
+  strong: {
+    marginTop: "6px",
+    fontWeight: 700,
+  },
+};
+
 function normalize(value) {
-  return String(value ?? "")
-    .replace(/\uFEFF/g, "")
-    .trim()
-    .toLowerCase();
+  return String(value ?? "").replace(/\uFEFF/g, "").trim().toLowerCase();
 }
 
 function cleanDiscordId(value) {
@@ -181,13 +371,9 @@ async function fetchCsv(sheetId, gid) {
   for (const url of urls) {
     try {
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const text = await response.text();
-      if (!text.trim()) {
-        throw new Error("Empty sheet response");
-      }
+      if (!text.trim()) throw new Error("Empty sheet response");
       return parseCsv(text);
     } catch (error) {
       lastError = error;
@@ -201,9 +387,7 @@ function getHeaderMap(row) {
   const map = {};
   row.forEach((cell, index) => {
     const key = normalize(cell);
-    if (key) {
-      map[key] = index;
-    }
+    if (key) map[key] = index;
   });
   return map;
 }
@@ -236,8 +420,8 @@ function findMainRosterEmployee(rows, discordId) {
     return {
       name: row[nameIdx] || "",
       rank: row[rankIdx] || "",
-      hours: row[hoursIdx] || 0,
-      tir: row[tirIdx] || 0,
+      hours: Number(row[hoursIdx] || 0),
+      tir: Number(row[tirIdx] || 0),
     };
   }
 
@@ -268,7 +452,7 @@ function findFtdEmployee(rows, discordId) {
 
     return {
       inFtd: true,
-      ftdJobs: row[activitiesIdx] || 0,
+      ftdJobs: Number(row[activitiesIdx] || 0),
     };
   }
 
@@ -280,7 +464,6 @@ function findFtdEmployee(rows, discordId) {
 
 async function fetchRosterData(discordId) {
   const cleanId = cleanDiscordId(discordId);
-
   if (!cleanId) {
     return { ok: false, error: "Enter a valid Discord ID first." };
   }
@@ -302,8 +485,8 @@ async function fetchRosterData(discordId) {
       ok: true,
       employee: {
         ...mainEmployee,
-        inFtd: Boolean(ftdEmployee?.inFtd),
-        ftdJobs: Number(ftdEmployee?.ftdJobs || 0),
+        inFtd: Boolean(ftdEmployee.inFtd),
+        ftdJobs: Number(ftdEmployee.ftdJobs || 0),
       },
     };
   } catch (error) {
@@ -333,15 +516,12 @@ function evaluatePromotion(agent) {
   if (hours < requirement.minHours) {
     missing.push(`${requirement.minHours - hours} more hour(s)`);
   }
-
   if (tir < requirement.minTir) {
     missing.push(`${requirement.minTir - tir} more TIR day(s)`);
   }
-
   if (requirement.mustBeInFtd && !agent.inFtd) {
     missing.push("Must be in FTD");
   }
-
   if (ftdJobs < requirement.minFtdJobs) {
     missing.push(`${requirement.minFtdJobs - ftdJobs} more FTD job(s)`);
   }
@@ -365,35 +545,35 @@ function evaluatePromotion(agent) {
 
 function StatPill({ label, value }) {
   return (
-    <div className="rounded-2xl border bg-background/70 p-4 shadow-sm">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-1 text-lg font-semibold">{value}</div>
+    <div style={styles.stat}>
+      <div style={styles.statLabel}>{label}</div>
+      <div style={styles.statValue}>{value}</div>
     </div>
   );
 }
 
 function RequirementRow({ rank, data }) {
   return (
-    <div className="grid grid-cols-1 gap-3 rounded-2xl border p-4 md:grid-cols-5">
+    <div style={styles.requirementRow}>
       <div>
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">Rank</div>
-        <div className="font-semibold">{rank}</div>
+        <div style={styles.smallLabel}>Rank</div>
+        <div style={styles.strong}>{rank}</div>
       </div>
       <div>
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">Next Rank</div>
-        <div className="font-medium">{data.nextRank ?? "Top Rank"}</div>
+        <div style={styles.smallLabel}>Next Rank</div>
+        <div style={styles.strong}>{data.nextRank ?? "Top Rank"}</div>
       </div>
       <div>
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">Hours</div>
-        <div className="font-medium">{data.minHours}</div>
+        <div style={styles.smallLabel}>Hours</div>
+        <div style={styles.strong}>{data.minHours}</div>
       </div>
       <div>
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">TIR</div>
-        <div className="font-medium">{data.minTir} days</div>
+        <div style={styles.smallLabel}>TIR</div>
+        <div style={styles.strong}>{data.minTir} days</div>
       </div>
       <div>
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">FTD</div>
-        <div className="font-medium">{data.mustBeInFtd ? `Yes · ${data.minFtdJobs} job(s)` : "No"}</div>
+        <div style={styles.smallLabel}>FTD</div>
+        <div style={styles.strong}>{data.mustBeInFtd ? `Yes · ${data.minFtdJobs} job(s)` : "No"}</div>
       </div>
     </div>
   );
@@ -425,198 +605,174 @@ export default function FibPromotionEvaluator() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/40 p-4 md:p-8">
-      <div className="mx-auto grid max-w-7xl gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"
-        >
-          <Card className="rounded-3xl border shadow-xl">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl border p-3">
-                  <ShieldCheck className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle className="text-2xl md:text-3xl">FIB Promotion Evaluator</CardTitle>
-                  <CardDescription>
-                    Live Discord ID lookup using your public main roster and FTD roster.
-                  </CardDescription>
-                </div>
+    <div style={styles.page}>
+      <div style={styles.shell}>
+        <div style={styles.topGrid}>
+          <div style={styles.card}>
+            <div style={styles.headerRow}>
+              <div style={styles.iconBox}>
+                <ShieldCheck size={24} />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <StatPill label="Ranks Supported" value={DISPLAY_RANKS.length} />
-                <StatPill label="Lookup Source" value="Google Sheets" />
+              <div>
+                <h1 style={styles.title}>FIB Promotion Evaluator</h1>
+                <p style={styles.subtitle}>
+                  Live Discord ID lookup using your public main roster and FTD roster.
+                </p>
+              </div>
+            </div>
+
+            <div style={styles.statsGrid}>
+              <StatPill label="Ranks Supported" value={DISPLAY_RANKS.length} />
+              <StatPill label="Lookup Source" value="Google Sheets" />
+            </div>
+
+            <label htmlFor="discordId" style={styles.label}>
+              Discord ID
+            </label>
+            <div style={styles.inputRow}>
+              <input
+                id="discordId"
+                style={styles.input}
+                placeholder="Enter Discord ID"
+                value={discordId}
+                onChange={(e) => setDiscordId(e.target.value)}
+              />
+              <button type="button" style={styles.button} onClick={handleLookup} disabled={loading}>
+                <Search size={16} />
+                {loading ? "Checking" : "Check"}
+              </button>
+            </div>
+
+            <p style={styles.muted}>The page starts blank and only fills after a Discord ID lookup.</p>
+            {lookupError ? <p style={styles.error}>{lookupError}</p> : null}
+          </div>
+
+          <div style={styles.card}>
+            <div style={styles.headerRow}>
+              <div style={styles.iconBox}>
+                <User size={24} />
+              </div>
+              <div>
+                <h2 style={{ ...styles.title, fontSize: "24px" }}>Evaluation Result</h2>
+                <p style={styles.subtitle}>Rank, hours, TIR, FTD status, and promotion eligibility.</p>
+              </div>
+            </div>
+
+            <div>
+              <div style={styles.employeeHeader}>
+                <div>
+                  <div style={styles.smallLabel}>Employee</div>
+                  <div style={{ ...styles.strong, fontSize: "22px" }}>
+                    {employee.name || "No employee loaded"}
+                  </div>
+                </div>
+                <div style={styles.badge}>{employee.rank || "No rank"}</div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="discordId">Discord ID</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="discordId"
-                    placeholder="Enter Discord ID"
-                    value={discordId}
-                    onChange={(e) => setDiscordId(e.target.value)}
+              <hr style={styles.divider} />
+
+              <div style={styles.statsGrid}>
+                <StatPill label="Hours" value={employee.hours || 0} />
+                <StatPill label="TIR" value={employee.tir || 0} />
+                <StatPill label="In FTD" value={employee.inFtd ? "Yes" : "No"} />
+                <StatPill label="FTD Jobs" value={employee.ftdJobs || 0} />
+              </div>
+            </div>
+
+            <div style={styles.resultBox}>
+              <div style={styles.resultHeader}>
+                {result.eligible ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
+                <div>
+                  <div style={{ fontSize: "20px", fontWeight: 700 }}>
+                    {result.eligible ? "Eligible for Promotion" : "Not Yet Eligible"}
+                  </div>
+                  <div style={styles.subtitle}>
+                    {result.nextRank ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                        {employee.rank || "No rank"} <ArrowRight size={16} /> {result.nextRank}
+                      </span>
+                    ) : (
+                      "No further promotion rank configured"
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: "16px", fontSize: "14px", fontWeight: 600 }}>Requirement Summary</div>
+              {result.requirement ? (
+                <div style={{ ...styles.statsGrid, marginTop: "12px", marginBottom: 0 }}>
+                  <StatPill label="Required Hours" value={result.requirement.minHours} />
+                  <StatPill label="Required TIR" value={result.requirement.minTir} />
+                  <StatPill
+                    label="FTD Membership"
+                    value={result.requirement.mustBeInFtd ? "Required" : "Not Required"}
                   />
-                  <Button className="rounded-2xl" onClick={handleLookup} disabled={loading}>
-                    <Search className="mr-2 h-4 w-4" />
-                    {loading ? "Checking" : "Check"}
-                  </Button>
+                  <StatPill label="FTD Jobs Needed" value={result.requirement.minFtdJobs} />
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  The page starts blank and only fills after a Discord ID lookup.
-                </p>
-                {lookupError ? (
-                  <p className="text-sm font-medium text-destructive">{lookupError}</p>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
+              ) : (
+                <p style={styles.muted}>No requirement data available for this rank.</p>
+              )}
 
-          <Card className="rounded-3xl border shadow-xl">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl border p-3">
-                  <User className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle>Evaluation Result</CardTitle>
-                  <CardDescription>
-                    Rank, hours, TIR, FTD status, and promotion eligibility.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="rounded-2xl border p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm text-muted-foreground">Employee</div>
-                    <div className="text-xl font-semibold">{employee.name || "No employee loaded"}</div>
-                  </div>
-                  <Badge variant="secondary" className="rounded-xl px-3 py-1 text-sm">
-                    {employee.rank || "No rank"}
-                  </Badge>
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="grid gap-3 md:grid-cols-2">
-                  <StatPill label="Hours" value={employee.hours || 0} />
-                  <StatPill label="TIR" value={employee.tir || 0} />
-                  <StatPill label="In FTD" value={employee.inFtd ? "Yes" : "No"} />
-                  <StatPill label="FTD Jobs" value={employee.ftdJobs || 0} />
-                </div>
-              </div>
-
-              <motion.div
-                key={`${employee.rank}-${employee.hours}-${employee.tir}-${employee.ftdJobs}-${employee.inFtd}`}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border p-5"
-              >
-                <div className="flex items-center gap-3">
-                  {result.eligible ? <CheckCircle2 className="h-6 w-6" /> : <XCircle className="h-6 w-6" />}
-                  <div>
-                    <div className="text-lg font-semibold">
-                      {result.eligible ? "Eligible for Promotion" : "Not Yet Eligible"}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {result.nextRank ? (
-                        <span className="inline-flex items-center gap-2">
-                          {employee.rank || "No rank"} <ArrowRight className="h-4 w-4" /> {result.nextRank}
-                        </span>
-                      ) : (
-                        "No further promotion rank configured"
-                      )}
-                    </div>
+              {!result.eligible && result.missing.length > 0 ? (
+                <div style={{ marginTop: "16px" }}>
+                  <div style={{ fontSize: "14px", fontWeight: 600 }}>Still Missing</div>
+                  <div style={styles.pillWrap}>
+                    {result.missing.map((item) => (
+                      <div key={item} style={styles.pill}>
+                        {item}
+                      </div>
+                    ))}
                   </div>
                 </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
 
-                <div className="mt-5 space-y-3">
-                  <div className="text-sm font-medium">Requirement Summary</div>
-                  {result.requirement ? (
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <StatPill label="Required Hours" value={result.requirement.minHours} />
-                      <StatPill label="Required TIR" value={result.requirement.minTir} />
-                      <StatPill
-                        label="FTD Membership"
-                        value={result.requirement.mustBeInFtd ? "Required" : "Not Required"}
-                      />
-                      <StatPill label="FTD Jobs Needed" value={result.requirement.minFtdJobs} />
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">No requirement data available for this rank.</div>
-                  )}
-                </div>
-
-                {!result.eligible && result.missing.length > 0 ? (
-                  <div className="mt-5 rounded-2xl border border-dashed p-4">
-                    <div className="mb-2 text-sm font-medium">Still Missing</div>
-                    <div className="flex flex-wrap gap-2">
-                      {result.missing.map((item) => (
-                        <Badge key={item} variant="outline" className="rounded-xl px-3 py-1">
-                          {item}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </motion.div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-          <Card className="rounded-3xl border shadow-lg">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl border p-3">
-                  <ClipboardList className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle>Rank Requirements</CardTitle>
-                  <CardDescription>
-                    Probationary Agent is excluded from the public website list like you asked.
-                  </CardDescription>
-                </div>
+        <div style={styles.bottomGrid}>
+          <div style={styles.card}>
+            <div style={styles.headerRow}>
+              <div style={styles.iconBox}>
+                <ClipboardList size={24} />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {DISPLAY_RANKS.map((rank) => (
-                <RequirementRow key={rank} rank={rank} data={REQUIREMENTS[rank]} />
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border shadow-lg">
-            <CardHeader>
-              <CardTitle>Live Sheet Notes</CardTitle>
-              <CardDescription>
-                This version reads directly from the two public sheet links you shared.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <div className="rounded-2xl border p-4">
-                <div className="font-medium text-foreground">Main roster</div>
-                <p className="mt-1">Used for name, rank, time in rank, hours, and Discord ID matching.</p>
-              </div>
-              <div className="rounded-2xl border p-4">
-                <div className="font-medium text-foreground">FTD roster</div>
-                <p className="mt-1">Used for FTD membership and activity count by Discord ID.</p>
-              </div>
-              <div className="rounded-2xl border p-4">
-                <div className="font-medium text-foreground">If lookups still fail</div>
-                <p className="mt-1">
-                  The most common reason is Google blocking CSV export access in the browser. In that case, the next step is moving the same sheet-reading logic into a Vercel API route.
+              <div>
+                <h2 style={{ ...styles.title, fontSize: "24px" }}>Rank Requirements</h2>
+                <p style={styles.subtitle}>
+                  Probationary Agent is excluded from the public website list like you asked.
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            {DISPLAY_RANKS.map((rank) => (
+              <RequirementRow key={rank} rank={rank} data={REQUIREMENTS[rank]} />
+            ))}
+          </div>
+
+          <div style={styles.card}>
+            <h2 style={{ ...styles.title, fontSize: "24px", marginBottom: "8px" }}>Live Sheet Notes</h2>
+            <p style={styles.subtitle}>This version reads directly from the two public sheet links you shared.</p>
+
+            <div style={{ ...styles.requirementRow, marginTop: "18px" }}>
+              <div>
+                <div style={styles.smallLabel}>Main roster</div>
+                <div style={styles.strong}>Used for name, rank, time in rank, hours, and Discord ID matching.</div>
+              </div>
+            </div>
+            <div style={styles.requirementRow}>
+              <div>
+                <div style={styles.smallLabel}>FTD roster</div>
+                <div style={styles.strong}>Used for FTD membership and activity count by Discord ID.</div>
+              </div>
+            </div>
+            <div style={styles.requirementRow}>
+              <div>
+                <div style={styles.smallLabel}>If lookups still fail</div>
+                <div style={styles.strong}>
+                  The most common reason is Google blocking CSV export access in the browser. In that case, move the same lookup logic into a Vercel server route.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
