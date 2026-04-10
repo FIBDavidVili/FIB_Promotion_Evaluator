@@ -248,8 +248,8 @@ export default async function handler(req: any, res: any) {
     let inFtd = false;
 
     for (const row of ftd) {
-      if (cleanId(row[2]) === discordId) {
-        ftdActivities = Number(row[5] || 0);
+      if (cleanId(row[10]) === discordId) {
+        ftdActivities = Number(row[9] || 0);
         inFtd = true;
         break;
       }
@@ -300,9 +300,6 @@ export default async function handler(req: any, res: any) {
     const status = eligible ? "✅ Eligible" : "❌ Not Eligible";
     const missingText = eligible ? "None" : missing.join(", ");
 
-    const monthlyLine =
-      (reqData.minMonthlyHours || 0) > 0 ? `**Monthly Hours:** ${monthlyHours}\n` : "";
-
     const message = `**Name:** ${employee.name}
 **Rank:** ${employee.rank}
 **Next Rank:** ${nextRank}
@@ -313,7 +310,7 @@ export default async function handler(req: any, res: any) {
 **TIR:** ${employee.tir}
 **FTD:** ${inFtd ? "Yes" : "No"}
 **FTD Activities:** ${ftdActivities}
-${monthlyLine}**Missing:** ${missingText}`;
+${(reqData.minMonthlyHours || 0) > 0 ? `**Monthly Hours:** ${monthlyHours}\n` : ""}**Missing:** ${missingText}`;
 
     return res.status(200).json({
       ok: true,
