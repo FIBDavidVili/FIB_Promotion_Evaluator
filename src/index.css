@@ -12,3 +12,15 @@ body,
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
+<title>FIB Badge Builder</title>
+
+<meta property="og:title" content="FIB Badge Builder">
+<meta property="og:description" content="Create professional FIB badges in seconds.">
+<meta property="og:image" content="https://your-domain.vercel.app/preview.png">
+<meta property="og:url" content="https://your-domain.vercel.app">
+<meta property="og:type" content="website">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FIB Badge Builder">
+<meta name="twitter:description" content="Create professional FIB badges in seconds.">
+<meta name="twitter:image" content="https://your-domain.vercel.app/preview.png">
