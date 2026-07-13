@@ -49,21 +49,21 @@ const REQUIREMENTS = {
     minHours: 5,
     minTir: 14,
     mustBeInFtd: true,
-    minFtdJobs: 3,
+    minFtdJobs: 6,
   },
   "Supervisory Special Agent": {
     nextRank: "Assistant Special Agent in Charge",
     minHours: 5,
     minTir: 14,
     mustBeInFtd: true,
-    minFtdJobs: 3,
+    minFtdJobs: 6,
   },
   "Assistant Special Agent in Charge": {
     nextRank: "Special Agent in Charge",
     minHours: 5,
     minTir: 14,
     mustBeInFtd: true,
-    minFtdJobs: 5,
+    minFtdJobs: 6,
   },
   "Special Agent in Charge": {
     nextRank: "Senior Special Agent In Charge",
@@ -85,7 +85,7 @@ const REQUIREMENTS = {
     minHours: 5,
     minTir: 21,
     mustBeInFtd: true,
-    minFtdJobs: 3,
+    minFtdJobs: 6,
     minMonthlyHours: 25,
   },
   "Section Commander": {
@@ -93,7 +93,7 @@ const REQUIREMENTS = {
     minHours: 5,
     minTir: 21,
     mustBeInFtd: true,
-    minFtdJobs: 3,
+    minFtdJobs: 6,
     minMonthlyHours: 25,
   },
   "Commander in Charge": {
@@ -101,7 +101,7 @@ const REQUIREMENTS = {
     minHours: 5,
     minTir: 21,
     mustBeInFtd: true,
-    minFtdJobs: 3,
+    minFtdJobs: 6,
     minMonthlyHours: 25,
   },
   "Command Specialist": {
@@ -109,7 +109,7 @@ const REQUIREMENTS = {
     minHours: 5,
     minTir: 28,
     mustBeInFtd: true,
-    minFtdJobs: 3,
+    minFtdJobs: 6,
     minMonthlyHours: 30,
   },
 };
