@@ -1,26 +1,14 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-    <title>FIB Badge Builder</title>
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
 
-    <meta property="og:title" content="FIB Badge Builder">
-    <meta property="og:description" content="Create professional FIB badges in seconds.">
-    <meta property="og:image" content="https://fib-badge-generator.vercel.app/preview.png">
-    <meta property="og:url" content="https://fib-badge-generator.vercel.app">
-    <meta property="og:type" content="website">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="FIB Badge Builder">
-    <meta name="twitter:description" content="Create professional FIB badges in seconds.">
-    <meta name="twitter:image" content="https://fib-badge-generator.vercel.app/preview.png">
-
-    <link rel="icon" href="/favicon.ico">
-  </head>
-
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
