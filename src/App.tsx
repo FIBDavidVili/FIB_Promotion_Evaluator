@@ -11,7 +11,7 @@ import {
 
 const MAIN_SHEET_ID = "1R7SpirGzmgUzZK6_MwcH0LGAubwShjsaxxJG2fFDi5g";
 const MAIN_GID = "1598342668";
-const FTD_SHEET_ID = "1YaUUYYXVPOffZQr7L51SPaDscz7XA6foQImhFqbu5yk";
+const FTD_SHEET_ID = "1kVyNE-IGy1eb3cYLlkoissLzMZqDgthgB2mYxQWnuDg";
 const FTD_GID = "476091669";
 const HOURS_MANAGER_GID = "264837711";
 
