@@ -9,11 +9,11 @@ import {
   ClipboardList,
 } from "lucide-react";
 
-const MAIN_SHEET_ID = "1R7SpirGzmgUzZK6_MwcH0LGAubwShjsaxxJG2fFDi5g";
-const MAIN_GID = "1598342668";
-const FTD_SHEET_ID = "1kVyNE-IGy1eb3cYLlkoissLzMZqDgthgB2mYxQWnuDg";
+const MAIN_SHEET_ID = "1vBtzNCIWL7GKNQSr8LQPdGpe7v6XpuM0aGBcBK3YTs0";
+const MAIN_GID = "829833892";
+const FTD_SHEET_ID = "1wtq_Vw_TwU4TVkdFbonZjU8METumnAF3F0NP1q613mY";
 const FTD_GID = "476091669";
-const HOURS_MANAGER_GID = "264837711";
+const HOURS_MANAGER_GID = "476091669";
 
 const REQUIREMENTS = {
   "Probationary Agent": {
