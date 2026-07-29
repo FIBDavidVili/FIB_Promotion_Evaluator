@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   ShieldCheck,
   Search,
@@ -675,19 +675,34 @@ function RequirementRow({ rank, data }) {
 
 export default function FibPromotionEvaluator() {
   const [discordId, setDiscordId] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
-  const [lookupError, setLookupError] = useState("");
+const [loading, setLoading] = useState(false);
+const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+const [lookupError, setLookupError] = useState("");
+const lookupTimeout = useRef(null);
   const [employee, setEmployee] = useState(EMPTY_AGENT);
 
   const result = useMemo(() => evaluatePromotion(employee), [employee]);
 
-  useEffect(() => {
-    runSelfTests();
-    document.title = "FIB Promotion Evaluator";
-  }, []);
+useEffect(() => {
+  runSelfTests();
+  document.title = "FIB Promotion Evaluator";
+}, []);
 
- async function handleLookup() {
+useEffect(() => {
+  if (!discordId) return;
+
+  clearTimeout(lookupTimeout.current);
+
+  lookupTimeout.current = setTimeout(() => {
+    handleLookup();
+  }, 700);
+
+  return () => clearTimeout(lookupTimeout.current);
+}, [discordId]);
+
+async function handleLookup() {
+  if (!discordId.trim()) return;
+
   setLoading(true);
   setShowLoadingOverlay(true);
   setLookupError("");
@@ -697,209 +712,66 @@ export default function FibPromotionEvaluator() {
   if (!resultData.ok || !resultData.employee) {
     setEmployee(EMPTY_AGENT);
     setLookupError(resultData.error || "Lookup failed.");
-    setLoading(false);
+   setLoading(false);
+setShowLoadingOverlay(false);
     setShowLoadingOverlay(false);
     return;
   }
 
   setEmployee(resultData.employee);
 
-  setLoading(false);
-  setShowLoadingOverlay(false);
-}
-  return (
-    <div style={styles.page}>
-      <div style={styles.shell}>
-        <div style={styles.topGrid}>
-          <div style={styles.card}>
-            <div style={styles.headerRow}>
-              <div style={styles.iconBox}>
-                <ShieldCheck size={24} />
-              </div>
-              <div>
-                <h1 style={styles.title}>FIB Promotion Evaluator</h1>
-                <p style={styles.subtitle}>
-                  Check if an agent meets all requirements for promotion based on rank, activity, and performance.
-                </p>
-              </div>
-            </div>
-
-            <div style={styles.statsGrid}>
-              <StatPill label="Ranks Supported" value={DISPLAY_RANKS.length} />
-              <StatPill label="Lookup Source" value="Google Sheets" />
-            </div>
-
-            <label htmlFor="discordId" style={styles.label}>
-              Discord ID
-            </label>
-            <div style={styles.inputRow}>
-              <input
-                id="discordId"
-                style={styles.input}
-                placeholder="Enter Discord ID"
-                value={discordId}
-                onChange={(e) => setDiscordId(e.target.value)}
-              />
-              <button type="button" style={styles.button} onClick={handleLookup} disabled={loading}>
-                <Search size={16} />
-                {loading ? "Checking" : "Check"}
-              </button>
-            </div>
-
-            <p style={styles.muted}>The page starts blank and only fills after a Discord ID lookup.</p>
-            {lookupError ? <p style={styles.error}>{lookupError}</p> : null}
-          </div>
-
-          <div style={styles.card}>
-            <div style={styles.headerRow}>
-              <div style={styles.iconBox}>
-                <User size={24} />
-              </div>
-              <div>
-                <h2 style={{ ...styles.title, fontSize: "24px" }}>Evaluation Result</h2>
-                <p style={styles.subtitle}>View an agent’s status and determine if they qualify for their next promotion.</p>
-              </div>
-            </div>
-
-            <div>
-              <div style={styles.employeeHeader}>
-                <div>
-                  <div style={styles.smallLabel}>Employee</div>
-                  <div style={{ ...styles.strong, fontSize: "22px" }}>
-                    {employee.name || "No employee loaded"}
-                  </div>
-                </div>
-                <div style={styles.badge}>{employee.rank || "No rank"}</div>
-              </div>
-
-              <hr style={styles.divider} />
-
-              <div style={styles.statsGrid}>
-                <StatPill label="Hours" value={employee.hours || 0} />
-                <StatPill label="TIR" value={employee.tir || 0} />
-                <StatPill label="In FTD" value={employee.inFtd ? "Yes" : "No"} />
-                <StatPill label="FTD Activities" value={employee.ftdJobs || 0} />
-                <StatPill label="Monthly Hours" value={employee.monthlyHours || 0} />
-              </div>
-            </div>
-
-            <div style={styles.resultBox}>
-              <div style={styles.resultHeader}>
-                {result.eligible ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
-                <div>
-                  <div style={{ fontSize: "20px", fontWeight: 700 }}>
-                    {result.eligible ? "Eligible for Promotion" : "Not Yet Eligible"}
-                  </div>
-                  <div style={styles.subtitle}>
-                    {result.nextRank ? (
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                        {employee.rank || "No rank"} <ArrowRight size={16} /> {result.nextRank}
-                      </span>
-                    ) : (
-                      "No further promotion rank configured"
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginTop: "16px", fontSize: "14px", fontWeight: 600 }}>
-                Requirement Summary
-              </div>
-              {result.requirement ? (
-                <div style={{ ...styles.statsGrid, marginTop: "12px", marginBottom: 0 }}>
-                  <StatPill label="Required Hours" value={result.requirement.minHours} />
-                  <StatPill label="Required TIR" value={result.requirement.minTir} />
-                  <StatPill
-                    label="FTD Membership"
-                    value={result.requirement.mustBeInFtd ? "Required" : "Not Required"}
-                  />
-                  <StatPill label="FTD Activities Needed" value={result.requirement.minFtdJobs} />
-                  {result.requirement.minMonthlyHours ? (
-                  <StatPill label="Monthly Hours Needed" value={result.requirement.minMonthlyHours} />
-                  ) : null}
-                </div>
-              ) : (
-                <p style={styles.muted}>No requirement data available for this rank.</p>
-              )}
-
-              {!result.eligible && result.missing.length > 0 ? (
-                <div style={{ marginTop: "16px" }}>
-                  <div style={{ fontSize: "14px", fontWeight: 600 }}>Still Missing</div>
-                  <div style={styles.pillWrap}>
-                    {result.missing.map((item) => (
-                      <div key={item} style={styles.pill}>
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        <div style={styles.card}>
-          <div style={styles.headerRow}>
-            <div style={styles.iconBox}>
-              <ClipboardList size={24} />
-            </div>
-            <div>
-              <h2 style={{ ...styles.title, fontSize: "24px" }}>Rank Requirements</h2>
-              <p style={styles.subtitle}>
-                Full breakdown of promotion requirements for each rank.
-              </p>
-            </div>
-          </div>
-
-          {DISPLAY_RANKS.map((rank) => (
-            <RequirementRow key={rank} rank={rank} data={REQUIREMENTS[rank]} />
-          ))}
-        </div>
-      </div>
-{showLoadingOverlay ? (
+setLoading(false);
+setShowLoadingOverlay(false);
+ {showLoadingOverlay ? (
   <div
     style={{
       position: "fixed",
       inset: 0,
-      background: "rgba(255,255,255,0.92)",
-      backdropFilter: "blur(6px)",
+      background: "rgba(255,255,255,0.96)",
+      backdropFilter: "blur(8px)",
       display: "flex",
-      alignItems: "center",
       justifyContent: "center",
-      zIndex: 99999,
+      alignItems: "center",
       flexDirection: "column",
-      gap: "16px",
+      gap: "20px",
+      zIndex: 99999,
     }}
   >
-    <div
+    <img
+      src="/fib-logo.png"
+      alt="FIB"
       style={{
-        width: "48px",
-        height: "48px",
-        borderRadius: "50%",
-        border: "5px solid #e5e7eb",
-        borderTopColor: "#111827",
-        animation: "spin 0.8s linear infinite",
+        width: "140px",
+        height: "140px",
+        objectFit: "contain",
+        animation: "pulse 1.5s infinite",
       }}
     />
 
     <div
       style={{
-        fontSize: "18px",
+        fontSize: "20px",
         fontWeight: 700,
         color: "#111827",
       }}
     >
-      Loading Promotion Data...
+      Loading Agent Information...
     </div>
 
     <style>
       {`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+            opacity: 1;
           }
-          to {
-            transform: rotate(360deg);
+          50% {
+            transform: scale(1.08);
+            opacity: 0.75;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
           }
         }
       `}
