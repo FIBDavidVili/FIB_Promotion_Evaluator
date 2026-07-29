@@ -676,6 +676,7 @@ function RequirementRow({ rank, data }) {
 export default function FibPromotionEvaluator() {
   const [discordId, setDiscordId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [lookupError, setLookupError] = useState("");
   const [employee, setEmployee] = useState(EMPTY_AGENT);
 
@@ -686,23 +687,26 @@ export default function FibPromotionEvaluator() {
     document.title = "FIB Promotion Evaluator";
   }, []);
 
-  async function handleLookup() {
-    setLoading(true);
-    setLookupError("");
+ async function handleLookup() {
+  setLoading(true);
+  setShowLoadingOverlay(true);
+  setLookupError("");
 
-    const resultData = await fetchRosterData(discordId);
+  const resultData = await fetchRosterData(discordId);
 
-    if (!resultData.ok || !resultData.employee) {
-      setEmployee(EMPTY_AGENT);
-      setLookupError(resultData.error || "Lookup failed.");
-      setLoading(false);
-      return;
-    }
-
-    setEmployee(resultData.employee);
+  if (!resultData.ok || !resultData.employee) {
+    setEmployee(EMPTY_AGENT);
+    setLookupError(resultData.error || "Lookup failed.");
     setLoading(false);
+    setShowLoadingOverlay(false);
+    return;
   }
 
+  setEmployee(resultData.employee);
+
+  setLoading(false);
+  setShowLoadingOverlay(false);
+}
   return (
     <div style={styles.page}>
       <div style={styles.shell}>
@@ -852,7 +856,56 @@ export default function FibPromotionEvaluator() {
           ))}
         </div>
       </div>
+{showLoadingOverlay ? (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(255,255,255,0.92)",
+      backdropFilter: "blur(6px)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 99999,
+      flexDirection: "column",
+      gap: "16px",
+    }}
+  >
+    <div
+      style={{
+        width: "48px",
+        height: "48px",
+        borderRadius: "50%",
+        border: "5px solid #e5e7eb",
+        borderTopColor: "#111827",
+        animation: "spin 0.8s linear infinite",
+      }}
+    />
 
+    <div
+      style={{
+        fontSize: "18px",
+        fontWeight: 700,
+        color: "#111827",
+      }}
+    >
+      Loading Promotion Data...
+    </div>
+
+    <style>
+      {`
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}
+    </style>
+  </div>
+) : null}
       <a
         href="https://discord.com/users/640288455766704162"
         target="_blank"
