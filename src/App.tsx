@@ -738,15 +738,15 @@ setShowLoadingOverlay(false);
     }}
   >
     <img
-      src="/fib-logo.png"
-      alt="FIB"
-      style={{
-        width: "140px",
-        height: "140px",
-        objectFit: "contain",
-        animation: "pulse 1.5s infinite",
-      }}
-    />
+  src="/favicon.png"
+  alt="FIB"
+  style={{
+    width: "140px",
+    height: "140px",
+    objectFit: "contain",
+    animation: "pulse 1.5s infinite",
+  }}
+/>
 
     <div
       style={{
